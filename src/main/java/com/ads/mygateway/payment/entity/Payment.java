@@ -17,7 +17,6 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String planName;
     private int amount; // in INR
     private String status; // PENDING, SUCCESS, FAILED

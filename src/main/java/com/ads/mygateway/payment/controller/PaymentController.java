@@ -62,6 +62,7 @@ public class PaymentController {
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error verifying payment: " + e.getMessage());
+
         }
     }
 }

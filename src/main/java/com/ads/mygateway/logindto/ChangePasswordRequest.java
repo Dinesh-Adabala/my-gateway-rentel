@@ -8,7 +8,10 @@ import lombok.Data;
 public class ChangePasswordRequest {
     @NotBlank
     private String currentPassword;
-    @NotBlank @Size(min = 6) private String newPassword;
     @NotBlank
-    @Size(min = 6) private String confirmPassword;
+    @Size(min = 6)
+    private String newPassword;
+    @NotBlank
+    @Size(min = 6)
+    private String confirmPassword;
 }

@@ -25,13 +25,11 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.getById(id));
     }
 
-    // ✅ Now returns list
     @GetMapping("/name/{name}")
     public ResponseEntity<List<PropertyDTO>> getByName(@PathVariable String name) {
         return ResponseEntity.ok(propertyService.getByName(name));
     }
 
-    // ✅ Now returns list
     @GetMapping("/location/{location}")
     public ResponseEntity<List<PropertyDTO>> getByLocation(@PathVariable String location) {
         return ResponseEntity.ok(propertyService.getByLocation(location));

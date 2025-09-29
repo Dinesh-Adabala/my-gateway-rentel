@@ -50,26 +50,26 @@ public class AuthController {
             String result = userService.confirmToken(token);
 
             String successHtml = """
-            <html>
-              <head><title>Email Verified</title></head>
-              <body style="font-family:Arial;">
-                <h2>Email verified successfully 🎉</h2>
-                <p>You can now login.</p>
-              </body>
-            </html>
-        """;
+                        <html>
+                          <head><title>Email Verified</title></head>
+                          <body style="font-family:Arial;">
+                            <h2>Email verified successfully 🎉</h2>
+                            <p>You can now login.</p>
+                          </body>
+                        </html>
+                    """;
             return ResponseEntity.ok(successHtml);
 
         } catch (ApiException e) {
             String errorHtml = """
-            <html>
-              <head><title>Verification Failed</title></head>
-              <body style="font-family:Arial; color:red;">
-                <h2>Verification failed ❌</h2>
-                <p>Invalid or expired token.</p>
-              </body>
-            </html>
-        """;
+                        <html>
+                          <head><title>Verification Failed</title></head>
+                          <body style="font-family:Arial; color:red;">
+                            <h2>Verification failed ❌</h2>
+                            <p>Invalid or expired token.</p>
+                          </body>
+                        </html>
+                    """;
             return ResponseEntity.badRequest().body(errorHtml);
         }
     }

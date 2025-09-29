@@ -33,19 +33,7 @@ public class UserService {
             throw new ApiException("Email already registered. Please login or use different email.");
         }
 
-        AppUser user = AppUser.builder()
-                .firstName(req.getFirstName())
-                .lastName(req.getLastName())
-                .address(req.getAddress())
-                .countryCode(req.getCountryCode())
-                .phoneNumber(req.getPhoneNumber())
-                .email(req.getEmail())
-                .password(hash(req.getPassword()))
-                .profilePic(req.getProfilePic())
-                .verified(false)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        AppUser user = AppUser.builder().firstName(req.getFirstName()).lastName(req.getLastName()).address(req.getAddress()).countryCode(req.getCountryCode()).phoneNumber(req.getPhoneNumber()).email(req.getEmail()).password(hash(req.getPassword())).profilePic(req.getProfilePic()).verified(false).createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).build();
 
         user = userRepository.save(user);
         // create token & send email
@@ -65,8 +53,7 @@ public class UserService {
     }
 
     public String confirmToken(String token) {
-        VerificationToken vt = tokenService.findByToken(token)
-                .orElseThrow(() -> new ApiException("Invalid verification token"));
+        VerificationToken vt = tokenService.findByToken(token).orElseThrow(() -> new ApiException("Invalid verification token"));
 
         if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
             tokenService.deleteByToken(token);
@@ -86,8 +73,7 @@ public class UserService {
     }
 
     public AppUser login(LoginRequest req) {
-        AppUser user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new ApiException("User not found. Please register."));
+        AppUser user = userRepository.findByEmail(req.getEmail()).orElseThrow(() -> new ApiException("User not found. Please register."));
 
         if (!user.isVerified()) {
             throw new ApiException("Email not verified. Please verify your email first.");
@@ -101,8 +87,7 @@ public class UserService {
     }
 
     public AppUser editProfile(String email, EditProfileRequest req) {
-        AppUser user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ApiException("User not found with email: " + email));
+        AppUser user = userRepository.findByEmail(email).orElseThrow(() -> new ApiException("User not found with email: " + email));
 
         user.setFirstName(req.getFirstName());
         user.setLastName(req.getLastName());
@@ -117,8 +102,7 @@ public class UserService {
     }
 
     public void changePassword(String email, ChangePasswordRequest req) {
-        AppUser user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ApiException("User not found with email: " + email));
+        AppUser user = userRepository.findByEmail(email).orElseThrow(() -> new ApiException("User not found with email: " + email));
 
         if (!BCrypt.checkpw(req.getCurrentPassword(), user.getPassword())) {
             throw new ApiException("Current password is incorrect");

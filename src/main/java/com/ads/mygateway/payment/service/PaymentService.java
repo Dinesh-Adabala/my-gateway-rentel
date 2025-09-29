@@ -59,17 +59,8 @@ public class PaymentService {
         PaymentLink paymentLink = razorpayClient.paymentLink.create(request);
 
         // Save payment in DB with PENDING status
-        Payment payment = Payment.builder()
-                .planName(planName)
-                .amount(amount)
-                .status("PENDING")
-                .razorpayOrderId(paymentLink.get("id")) // Razorpay's payment link id
-                .referenceId(referenceId)
-                .customerEmail(email)
-                .customerContact(contact)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        Payment payment = Payment.builder().planName(planName).amount(amount).status("PENDING").razorpayOrderId(paymentLink.get("id")) // Razorpay's payment link id
+                .referenceId(referenceId).customerEmail(email).customerContact(contact).createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).build();
 
         paymentRepository.save(payment);
 
@@ -77,11 +68,7 @@ public class PaymentService {
     }
 
     public void updatePaymentSuccess(String razorpayPaymentId, String orderId, String signature) {
-        Payment payment = paymentRepository.findAll()
-                .stream()
-                .filter(p -> p.getRazorpayOrderId().equals(orderId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Payment not found for orderId: " + orderId));
+        Payment payment = paymentRepository.findAll().stream().filter(p -> p.getRazorpayOrderId().equals(orderId)).findFirst().orElseThrow(() -> new RuntimeException("Payment not found for orderId: " + orderId));
 
         payment.setStatus("SUCCESS");
         payment.setRazorpayPaymentId(razorpayPaymentId);
@@ -92,11 +79,7 @@ public class PaymentService {
     }
 
     public void updatePaymentFailure(String orderId) {
-        Payment payment = paymentRepository.findAll()
-                .stream()
-                .filter(p -> p.getRazorpayOrderId().equals(orderId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Payment not found for orderId: " + orderId));
+        Payment payment = paymentRepository.findAll().stream().filter(p -> p.getRazorpayOrderId().equals(orderId)).findFirst().orElseThrow(() -> new RuntimeException("Payment not found for orderId: " + orderId));
 
         payment.setStatus("FAILED");
         payment.setUpdatedAt(LocalDateTime.now());

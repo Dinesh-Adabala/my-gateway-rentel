@@ -12,5 +12,5 @@ public class AppConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // expose properties if you like; services can @Value them directly
+
 }
