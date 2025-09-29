@@ -17,18 +17,14 @@ public class Property {
     @Id
     // @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String propertyId;
-
     private String propertyName;
     private String location;
-
     private int guests;
     private int bedrooms;
     private int bathrooms;
     private int kitchens;
-
     private String ratePeriodStart;
     private String ratePeriodEnd;
-
     private Double minRate;
     private Double nightlyRate;
     private Double weekendRate;

@@ -33,8 +33,7 @@ public class PropertyService {
     }
 
     public PropertyDTO getById(String id) {
-        Property property = propertyRepository.findById(id)
-                .orElseThrow(() -> new PropertyNotFoundException("Property not found with id " + id));
+        Property property = propertyRepository.findById(id).orElseThrow(() -> new PropertyNotFoundException("Property not found with id " + id));
         return mapToDTO(property);
     }
 
@@ -43,9 +42,7 @@ public class PropertyService {
         if (name.length() < 3) {
             throw new IllegalArgumentException("Search query must be at least 3 characters long");
         }
-        return propertyRepository.findByPropertyName(name).stream()
-                .map(this::mapToDTO)
-                .toList();
+        return propertyRepository.findByPropertyName(name).stream().map(this::mapToDTO).toList();
     }
 
     public List<PropertyDTO> getByEmailId(String emailId) {
@@ -53,9 +50,7 @@ public class PropertyService {
         if (properties.isEmpty()) {
             throw new PropertyNotFoundException("No properties found with email " + emailId);
         }
-        return properties.stream()
-                .map(this::mapToDTO)
-                .toList();
+        return properties.stream().map(this::mapToDTO).toList();
     }
 
 
@@ -64,9 +59,7 @@ public class PropertyService {
         if (location.length() < 3) {
             throw new IllegalArgumentException("Search query must be at least 3 characters long");
         }
-        return propertyRepository.findByLocation(location).stream()
-                .map(this::mapToDTO)
-                .toList();
+        return propertyRepository.findByLocation(location).stream().map(this::mapToDTO).toList();
     }
 
     public void deleteById(String id) {
@@ -87,52 +80,10 @@ public class PropertyService {
     }
 
     private PropertyDTO mapToDTO(Property property) {
-        return PropertyDTO.builder()
-                .propertyId(property.getPropertyId())
-                .propertyName(property.getPropertyName())
-                .location(property.getLocation())
-                .guests(property.getGuests())
-                .bedrooms(property.getBedrooms())
-                .bathrooms(property.getBathrooms())
-                .kitchens(property.getKitchens())
-                .ratePeriodStart(property.getRatePeriodStart())
-                .ratePeriodEnd(property.getRatePeriodEnd())
-                .minRate(property.getMinRate())
-                .nightlyRate(property.getNightlyRate())
-                .weekendRate(property.getWeekendRate())
-                .weeklyRate(property.getWeeklyRate())
-                .monthlyRate(property.getMonthlyRate())
-                .additionalCharges(property.getAdditionalCharges())
-                .amenities(property.getAmenities())
-                .about(property.getAbout())
-                .policyAndHouseRules(property.getPolicyAndHouseRules())
-                .images(property.getImages())
-                .emailId(property.getEmailId())
-                .build();
+        return PropertyDTO.builder().propertyId(property.getPropertyId()).propertyName(property.getPropertyName()).location(property.getLocation()).guests(property.getGuests()).bedrooms(property.getBedrooms()).bathrooms(property.getBathrooms()).kitchens(property.getKitchens()).ratePeriodStart(property.getRatePeriodStart()).ratePeriodEnd(property.getRatePeriodEnd()).minRate(property.getMinRate()).nightlyRate(property.getNightlyRate()).weekendRate(property.getWeekendRate()).weeklyRate(property.getWeeklyRate()).monthlyRate(property.getMonthlyRate()).additionalCharges(property.getAdditionalCharges()).amenities(property.getAmenities()).about(property.getAbout()).policyAndHouseRules(property.getPolicyAndHouseRules()).images(property.getImages()).emailId(property.getEmailId()).build();
     }
 
     private Property mapToEntity(PropertyDTO dto) {
-        return Property.builder()
-                .propertyId(dto.getPropertyId())
-                .propertyName(dto.getPropertyName())
-                .location(dto.getLocation())
-                .guests(dto.getGuests())
-                .bedrooms(dto.getBedrooms())
-                .bathrooms(dto.getBathrooms())
-                .kitchens(dto.getKitchens())
-                .ratePeriodStart(dto.getRatePeriodStart())
-                .ratePeriodEnd(dto.getRatePeriodEnd())
-                .minRate(dto.getMinRate())
-                .nightlyRate(dto.getNightlyRate())
-                .weekendRate(dto.getWeekendRate())
-                .weeklyRate(dto.getWeeklyRate())
-                .monthlyRate(dto.getMonthlyRate())
-                .additionalCharges(dto.getAdditionalCharges())
-                .amenities(dto.getAmenities())
-                .about(dto.getAbout())
-                .policyAndHouseRules(dto.getPolicyAndHouseRules())
-                .images(dto.getImages())
-                .emailId(dto.getEmailId())
-                .build();
+        return Property.builder().propertyId(dto.getPropertyId()).propertyName(dto.getPropertyName()).location(dto.getLocation()).guests(dto.getGuests()).bedrooms(dto.getBedrooms()).bathrooms(dto.getBathrooms()).kitchens(dto.getKitchens()).ratePeriodStart(dto.getRatePeriodStart()).ratePeriodEnd(dto.getRatePeriodEnd()).minRate(dto.getMinRate()).nightlyRate(dto.getNightlyRate()).weekendRate(dto.getWeekendRate()).weeklyRate(dto.getWeeklyRate()).monthlyRate(dto.getMonthlyRate()).additionalCharges(dto.getAdditionalCharges()).amenities(dto.getAmenities()).about(dto.getAbout()).policyAndHouseRules(dto.getPolicyAndHouseRules()).images(dto.getImages()).emailId(dto.getEmailId()).build();
     }
 }

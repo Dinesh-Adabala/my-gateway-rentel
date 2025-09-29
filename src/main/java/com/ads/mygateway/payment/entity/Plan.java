@@ -16,7 +16,6 @@ public class Plan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;       // Silver / Gold / Platinum
     private String description;
     private int amount;        // in INR (e.g., 500 = ₹500)

@@ -7,7 +7,8 @@ import lombok.Data;
 public class EditProfileRequest {
     @NotBlank
     private String firstName;
-    @NotBlank private String lastName;
+    @NotBlank
+    private String lastName;
     private String address;
     private String countryCode;
     private String phoneNumber;

@@ -13,7 +13,8 @@ import lombok.NoArgsConstructor;
 public class RegistrationRequest {
     @NotBlank
     private String firstName;
-    @NotBlank private String lastName;
+    @NotBlank
+    private String lastName;
     private String address;
     private String countryCode;
     private String phoneNumber;
@@ -23,8 +24,11 @@ public class RegistrationRequest {
     }
 
     @Email
-    @NotBlank private String email;
-    @NotBlank @Size(min = 6) private String password;
+    @NotBlank
+    private String email;
+    @NotBlank
+    @Size(min = 6)
+    private String password;
     // profilePic can be a base64 string or filename — for simplicity accept filename
     private String profilePic;
 }

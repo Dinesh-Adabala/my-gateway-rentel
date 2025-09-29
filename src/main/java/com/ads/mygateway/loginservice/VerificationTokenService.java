@@ -29,6 +29,7 @@ public class VerificationTokenService {
     public Optional<VerificationToken> findByToken(String token) {
         return tokenRepository.findByToken(token);
     }
+
     @Transactional
     public void deleteByToken(String token) {
         tokenRepository.deleteByToken(token);
