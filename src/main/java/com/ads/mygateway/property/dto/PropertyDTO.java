@@ -30,4 +30,5 @@ public class PropertyDTO {
     private String policyAndHouseRules;
     private List<String> images;
     private String emailId;
+    private List<String> icalUrls;
 }

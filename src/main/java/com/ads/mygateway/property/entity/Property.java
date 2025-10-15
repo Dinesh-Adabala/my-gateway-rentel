@@ -46,4 +46,5 @@ public class Property {
     @ElementCollection
     private List<String> images;  // store URLs of images (S3 links or paths)
     private String emailId;
+    private List<String> icalUrls;
 }

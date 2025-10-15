@@ -38,7 +38,7 @@ public class UserService {
         user = userRepository.save(user);
         // create token & send email
         VerificationToken token = tokenService.createToken(user, 60 * 24); // 24 hours
-        String verifyLink = baseUrl + "/api/auth/confirm?token=" + token.getToken();
+        String verifyLink = baseUrl + "/auth/confirm?token=" + token.getToken();
 
         String html = com.ads.mygateway.util.MailTemplates.verificationEmail(user.getFirstName(), verifyLink);
 
