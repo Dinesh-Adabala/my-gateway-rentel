@@ -2,16 +2,19 @@ package com.ads.mygateway.property.service;
 
 import com.ads.mygateway.exception.PropertyNotFoundException;
 import com.ads.mygateway.ical.repository.IcalEventRepository;
+import com.ads.mygateway.property.dto.LocationSuggestionDTO;
 import com.ads.mygateway.property.dto.PropertyDTO;
 import com.ads.mygateway.property.entity.Property;
 import com.ads.mygateway.property.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,12 @@ public class PropertyService {
         return mapToDTO(property);
     }
 
+    public List<PropertyDTO> getAllProperties() {
+        List<Property> property = propertyRepository.findAll();
+        return property.stream().map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     // ✅ Now returns LIST because we’re using LIKE
     public List<PropertyDTO> getByName(String name) {
         if (name.length() < 3) {
@@ -55,14 +64,25 @@ public class PropertyService {
         return properties.stream().map(this::mapToDTO).toList();
     }
 
-
-    // ✅ Now returns LIST because we’re using LIKE
-    public List<PropertyDTO> getByLocation(String location) {
-        if (location.length() < 3) {
+    // ✅ Search by location and availability
+    public List<PropertyDTO> getByLocationAndAvailability(String location, LocalDateTime checkin, LocalDateTime checkout) {
+        if (location == null || location.length() < 3) {
             throw new IllegalArgumentException("Search query must be at least 3 characters long");
         }
-        return propertyRepository.findByLocation(location).stream().map(this::mapToDTO).toList();
+        if (checkin == null || checkout == null) {
+            throw new IllegalArgumentException("Checkin and checkout dates are required");
+        }
+
+        // Step 1: Find property IDs that are booked during the given date range
+        List<String> bookedPropertyIds = icalEventRepository.findBookedPropertyIdsBetween(checkin, checkout);
+
+        // Step 2: Find all properties by location (LIKE search) and exclude booked ones
+        return propertyRepository.findByLocation(location).stream()
+                .filter(p -> !bookedPropertyIds.contains(p.getPropertyId()))
+                .map(this::mapToDTO)
+                .toList();
     }
+
 
     public void deleteById(String id) {
         if (!propertyRepository.existsById(id)) {
@@ -99,11 +119,31 @@ public class PropertyService {
                 .map(this::mapToDTO)
                 .toList();
     }
+    /**
+     * Return distinct (location, state, country) suggestions matching the query.
+     * Query must be at least 3 characters.
+     */
+    public List<LocationSuggestionDTO> suggestLocations(String q) {
+        if (!StringUtils.hasText(q) || q.trim().length() < 3) {
+            throw new IllegalArgumentException("Query must be at least 3 characters");
+        }
+        String term = q.trim();
+        List<Object[]> rows = propertyRepository.findDistinctLocationStateCountryByLocationLike(term);
+
+        return rows.stream()
+                .map(r -> new LocationSuggestionDTO(
+                        r[0] == null ? "" : r[0].toString(),
+                        r[1] == null ? "" : r[1].toString(),
+                        r[2] == null ? "" : r[2].toString()
+                ))
+                .collect(Collectors.toList());
+    }
 
 
     private PropertyDTO mapToDTO(Property property) {
         return PropertyDTO.builder().propertyId(property.getPropertyId()).propertyName(property.getPropertyName())
-                .location(property.getLocation()).guests(property.getGuests()).bedrooms(property.getBedrooms())
+                .location(property.getLocation()).country(property.getCountry()).state(property.getState())
+                .guests(property.getGuests()).bedrooms(property.getBedrooms())
                 .bathrooms(property.getBathrooms()).kitchens(property.getKitchens())
                 .ratePeriodStart(property.getRatePeriodStart()).ratePeriodEnd(property.getRatePeriodEnd())
                 .minRate(property.getMinRate()).nightlyRate(property.getNightlyRate()).weekendRate(property
@@ -115,7 +155,7 @@ public class PropertyService {
 
     private Property mapToEntity(PropertyDTO dto) {
         return Property.builder().propertyId(dto.getPropertyId()).propertyName(dto.getPropertyName())
-                .location(dto.getLocation()).guests(dto.getGuests()).bedrooms(dto.getBedrooms())
+                .location(dto.getLocation()).state(dto.getState()).country(dto.getCountry()).guests(dto.getGuests()).bedrooms(dto.getBedrooms())
                 .bathrooms(dto.getBathrooms()).kitchens(dto.getKitchens()).ratePeriodStart(dto.getRatePeriodStart())
                 .ratePeriodEnd(dto.getRatePeriodEnd()).minRate(dto.getMinRate()).nightlyRate(dto.getNightlyRate())
                 .weekendRate(dto.getWeekendRate()).weeklyRate(dto.getWeeklyRate()).monthlyRate(dto.getMonthlyRate())

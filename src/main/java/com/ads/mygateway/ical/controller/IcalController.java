@@ -1,5 +1,6 @@
 package com.ads.mygateway.ical.controller;
 
+import com.ads.mygateway.ical.dto.BookedDateDTO;
 import com.ads.mygateway.ical.service.IcalImportExportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -49,4 +51,10 @@ public class IcalController {
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"property-" + propertyId + ".ics\"");
         return ResponseEntity.ok().headers(headers).body(body);
     }
+
+    @GetMapping("/booked-dates/{propertyId}")
+    public ResponseEntity<List<BookedDateDTO>> getBookedDates(@PathVariable String propertyId) {
+        return ResponseEntity.ok(service.getBookedDatesForProperty(propertyId));
+    }
+
 }

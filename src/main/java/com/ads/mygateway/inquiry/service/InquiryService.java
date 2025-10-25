@@ -12,6 +12,7 @@ import com.ads.mygateway.property.entity.Property;
 import com.ads.mygateway.property.repository.PropertyRepository;
 import com.ads.mygateway.util.MailTemplates;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -171,6 +172,21 @@ public class InquiryService {
         String date = java.time.LocalDate.now().toString().replace("-", "");
         int random = new Random().nextInt(9000) + 1000;
         return prefix + date + random; // ENQ202510081234
+    }
+
+    // ✅ Get single inquiry by enquiryId
+    public InquiryResponseDTO getInquiryByEnquiryId(String enquiryId) {
+        Inquiry inquiry = inquiryRepository.findByEnquiryId(enquiryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inquiry not found for enquiryId: " + enquiryId));
+        return mapToDTO(inquiry);
+    }
+
+    // ✅ Get all inquiries
+    public List<InquiryResponseDTO> getAllInquiries() {
+        List<Inquiry> allInquiries = inquiryRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        return allInquiries.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
 }

@@ -19,6 +19,8 @@ public class Property {
     private String propertyId;
     private String propertyName;
     private String location;
+    private String state;
+    private String country;
     private int guests;
     private int bedrooms;
     private int bathrooms;
