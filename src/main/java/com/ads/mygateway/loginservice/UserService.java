@@ -1,10 +1,7 @@
 package com.ads.mygateway.loginservice;
 
 import com.ads.mygateway.exception.ApiException;
-import com.ads.mygateway.logindto.ChangePasswordRequest;
-import com.ads.mygateway.logindto.EditProfileRequest;
-import com.ads.mygateway.logindto.LoginRequest;
-import com.ads.mygateway.logindto.RegistrationRequest;
+import com.ads.mygateway.logindto.*;
 import com.ads.mygateway.loginentity.AppUser;
 import com.ads.mygateway.loginentity.VerificationToken;
 import com.ads.mygateway.loginrepository.UserRepository;
@@ -15,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -117,4 +116,22 @@ public class UserService {
 
         userRepository.save(user);
     }
+
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> UserDTO.builder()
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .email(user.getEmail())
+                        .countryCode(user.getCountryCode())
+                        .phoneNumber(user.getPhoneNumber())
+                        .address(user.getAddress())
+                        .profilePic(user.getProfilePic())
+                        .about(user.getAbout())
+                        .verified(user.isVerified())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+
 }

@@ -32,4 +32,15 @@ public class InquiryController {
     public ResponseEntity<InquiryResponseDTO> acceptInquiry(@PathVariable String enquiryId) {
         return ResponseEntity.ok(inquiryService.acceptInquiry(enquiryId));
     }
+
+    @GetMapping("/fetch-by-id/{enquiryId}")
+    public ResponseEntity<InquiryResponseDTO> getInquiryByEnquiryId(@PathVariable String enquiryId) {
+        return ResponseEntity.ok(inquiryService.getInquiryByEnquiryId(enquiryId));
+    }
+
+    // ✅ NEW 2: Fetch all inquiries (for admin or overall list)
+    @GetMapping("/fetch-all")
+    public ResponseEntity<List<InquiryResponseDTO>> getAllInquiries() {
+        return ResponseEntity.ok(inquiryService.getAllInquiries());
+    }
 }

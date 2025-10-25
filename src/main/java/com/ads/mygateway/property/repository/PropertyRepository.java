@@ -21,4 +21,12 @@ public interface PropertyRepository extends JpaRepository<Property, String> {
     void deleteByPropertyName(String propertyName);
 
     List<Property> findByEmailId(String emailId);
+
+    @Query(value = "SELECT DISTINCT location, state, country " +
+            "FROM properties " +
+            "WHERE LOWER(location) LIKE LOWER(CONCAT('%', :q, '%')) " +
+            "ORDER BY country, state, location",
+            nativeQuery = true)
+    List<Object[]> findDistinctLocationStateCountryByLocationLike(@Param("q") String q);
+
 }

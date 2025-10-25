@@ -1,5 +1,6 @@
 package com.ads.mygateway.ical.service;
 
+import com.ads.mygateway.ical.dto.BookedDateDTO;
 import com.ads.mygateway.ical.entity.IcalEvent;
 import com.ads.mygateway.ical.repository.IcalEventRepository;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class IcalImportExportService {
@@ -251,4 +253,16 @@ public class IcalImportExportService {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\n", "\\n").replace(",", "\\,").replace(";", "\\;");
     }
+
+    public List<BookedDateDTO> getBookedDatesForProperty(String propertyId) {
+        List<IcalEvent> events = repo.findAllByPropertyId(propertyId);
+
+        return events.stream()
+                .map(e -> new BookedDateDTO(
+                        e.getDtStart().toLocalDate().toString(),
+                        e.getDtEnd().toLocalDate().toString()
+                ))
+                .collect(Collectors.toList());
+    }
+
 }

@@ -3,11 +3,14 @@ package com.ads.mygateway.controller;
 import com.ads.mygateway.exception.ApiException;
 import com.ads.mygateway.logindto.*;
 import com.ads.mygateway.loginentity.AppUser;
+import com.ads.mygateway.loginservice.PasswordResetService;
 import com.ads.mygateway.loginservice.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -15,10 +18,12 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
 
     // explicit constructor
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, PasswordResetService passwordResetService) {
         this.userService = userService;
+        this.passwordResetService = passwordResetService;
     }
 
 
@@ -89,6 +94,34 @@ public class AuthController {
             @Valid @RequestBody ChangePasswordRequest req) {
         userService.changePassword(email, req);
         return ResponseEntity.ok(new ApiResponse<>(true, "Password changed successfully", null));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Object>> forgotPassword(@RequestBody ForgotPasswordRequest req) {
+        try {
+            passwordResetService.createAndSendOtp(req.getEmail());
+            return ResponseEntity.ok(new ApiResponse<>(true, "OTP sent to your email (valid for 15 minutes)", null));
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Object>> resetPassword(@RequestBody ResetPasswordRequest req) {
+        if (!req.getNewPassword().equals(req.getConfirmPassword())) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, "New password and confirm password do not match", null));
+        }
+        try {
+            passwordResetService.verifyOtpAndResetPassword(req.getEmail(), req.getOtp(), req.getNewPassword());
+            return ResponseEntity.ok(new ApiResponse<>(true, "Password changed successfully", null));
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/owners")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
 }

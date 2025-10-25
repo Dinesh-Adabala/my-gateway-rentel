@@ -66,5 +66,26 @@ public class MailTemplates {
             return "Hello " + guestName + ", your booking for " + propertyName + " is confirmed.";
         }
     }
+
+    public static String forgotPasswordOtp(String name, String otp, int minutes) {
+        try {
+            String raw = loadTemplate("forgot-password-otp.html");
+            return raw.replace("[[name]]", name == null ? "User" : name)
+                    .replace("[[otp]]", otp)
+                    .replace("[[minutes]]", String.valueOf(minutes));
+        } catch (IOException e) {
+            return "Your OTP: " + otp + " (valid for " + minutes + " minutes)";
+        }
+    }
+
+    public static String passwordResetSuccess(String name) {
+        try {
+            String raw = loadTemplate("password-reset-success.html");
+            return raw.replace("[[name]]", name == null ? "User" : name);
+        } catch (IOException e) {
+            return "Your password has been changed successfully.";
+        }
+    }
+
 }
 
