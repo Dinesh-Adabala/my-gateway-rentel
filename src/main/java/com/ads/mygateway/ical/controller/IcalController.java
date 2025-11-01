@@ -27,18 +27,20 @@ public class IcalController {
     @PostMapping("/import")
     public ResponseEntity<?> importIcs(@RequestBody Map<String, String> body) {
         String propertyId = body.get("propertyId");
+        String source = body.get("source");         // e.g. "airbnb"
         String sourceUrl = body.get("sourceUrl");
-        if (propertyId == null || sourceUrl == null) {
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "propertyId and sourceUrl required"));
+        if (propertyId == null || source == null || sourceUrl == null) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "propertyId, source and sourceUrl required"));
         }
         try {
-            int imported = service.importFromUrl(propertyId, sourceUrl);
+            int imported = service.importFromUrl(propertyId, source, sourceUrl);
             return ResponseEntity.ok(Map.of("status", "ok", "imported", imported));
         } catch (Exception ex) {
             log.error("Manual import error: {}", ex.getMessage(), ex);
             return ResponseEntity.status(500).body(Map.of("status", "error", "message", ex.getMessage()));
         }
     }
+
 
     // Export combined .ics for property (URL style matches your screenshot pattern)
     @GetMapping(value = "/export/{propertyId}.ics", produces = "text/calendar; charset=utf-8")

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PropertyIcalScheduler {
@@ -30,19 +31,25 @@ public class PropertyIcalScheduler {
         log.info("Scheduled ICS import started.");
         List<Property> properties = propertyRepository.findAll();
         for (Property p : properties) {
-            List<String> urls = p.getIcalUrls();
-            if (urls == null || urls.isEmpty()) continue;
-            for (String url : urls) {
+            Map<String, String> icalMap = p.getIcalUrls();
+            if (icalMap == null || icalMap.isEmpty()) continue;
+
+            for (Map.Entry<String, String> e : icalMap.entrySet()) {
+                String source = e.getKey();
+                String url = e.getValue();
                 if (url == null || url.isBlank()) continue;
                 try {
-                    int imported = importExportService.importFromUrl(p.getPropertyId(), url);
-                    log.info("Imported {} events for propertyId={} from URL={}", imported, p.getPropertyId(), url);
+                    int imported = importExportService.importFromUrl(p.getPropertyId(), source, url);
+                    log.info("Imported {} events for propertyId={} source={} url={}",
+                            imported, p.getPropertyId(), source, url);
                 } catch (Exception ex) {
-                    log.error("Failed to import ICS for propertyId={} url={} : {}", p.getPropertyId(), url, ex.getMessage());
+                    log.error("Failed to import ICS for propertyId={} source={} url={} : {}",
+                            p.getPropertyId(), source, url, ex.getMessage());
                 }
             }
         }
         log.info("Scheduled ICS import finished.");
     }
+
 }
 

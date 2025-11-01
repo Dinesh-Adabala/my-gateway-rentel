@@ -28,7 +28,7 @@ public class UserService {
     private String baseUrl;
 
     public AppUser register(RegistrationRequest req) {
-        if (userRepository.existsByEmail(req.getEmail())) {
+        if (userRepository.existsByEmailAndVerifiedTrue(req.getEmail())) {
             throw new ApiException("Email already registered. Please login or use different email.");
         }
 

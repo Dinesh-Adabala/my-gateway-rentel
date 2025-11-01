@@ -6,14 +6,14 @@ import com.ads.mygateway.property.dto.LocationSuggestionDTO;
 import com.ads.mygateway.property.dto.PropertyDTO;
 import com.ads.mygateway.property.entity.Property;
 import com.ads.mygateway.property.repository.PropertyRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +36,23 @@ public class PropertyService {
         log.info("Property saved with ID: {}", saved.getPropertyId());
         return mapToDTO(saved);
     }
+    @Transactional
+    public PropertyDTO updateProperty(PropertyDTO dto) {
+        if (dto == null || !StringUtils.hasText(dto.getPropertyId())) {
+            throw new IllegalArgumentException("propertyId is required in DTO to update property");
+        }
 
+        String id = dto.getPropertyId();
+        Property existing = propertyRepository.findById(id)
+                .orElseThrow(() -> new PropertyNotFoundException("Property not found with id " + id));
+
+        // Update fields from DTO into existing entity
+        updateEntityFromDto(existing, dto);
+
+        Property saved = propertyRepository.save(existing);
+        log.info("Property updated with ID: {}", saved.getPropertyId());
+        return mapToDTO(saved);
+    }
     public PropertyDTO getById(String id) {
         Property property = propertyRepository.findById(id).orElseThrow(() -> new PropertyNotFoundException("Property not found with id " + id));
         return mapToDTO(property);
@@ -150,7 +166,8 @@ public class PropertyService {
                         .getWeekendRate()).weeklyRate(property.getWeeklyRate()).monthlyRate(property.getMonthlyRate())
                 .additionalCharges(property.getAdditionalCharges()).amenities(property.getAmenities())
                 .about(property.getAbout()).policyAndHouseRules(property.getPolicyAndHouseRules())
-                .images(property.getImages()).emailId(property.getEmailId()).icalUrls(property.getIcalUrls()).build();
+                .images(property.getImages()).emailId(property.getEmailId()).icalUrls(property.getIcalUrls())
+                .latitude(property.getLatitude()).longitude(property.getLongitude()).build();
     }
 
     private Property mapToEntity(PropertyDTO dto) {
@@ -161,6 +178,60 @@ public class PropertyService {
                 .weekendRate(dto.getWeekendRate()).weeklyRate(dto.getWeeklyRate()).monthlyRate(dto.getMonthlyRate())
                 .additionalCharges(dto.getAdditionalCharges()).amenities(dto.getAmenities()).about(dto.getAbout())
                 .policyAndHouseRules(dto.getPolicyAndHouseRules()).images(dto.getImages()).emailId(dto.getEmailId())
-                .icalUrls(dto.getIcalUrls()).build();
+                .icalUrls(dto.getIcalUrls()).latitude(dto.getLatitude()).longitude(dto.getLongitude()).build();
     }
+
+    private void updateEntityFromDto(Property existing, PropertyDTO dto) {
+        // Strings: update only when non-empty
+        if (StringUtils.hasText(dto.getPropertyName())) existing.setPropertyName(dto.getPropertyName());
+        if (StringUtils.hasText(dto.getLocation())) existing.setLocation(dto.getLocation());
+        if (StringUtils.hasText(dto.getState())) existing.setState(dto.getState());
+        if (StringUtils.hasText(dto.getCountry())) existing.setCountry(dto.getCountry());
+        if (StringUtils.hasText(dto.getAbout())) existing.setAbout(dto.getAbout());
+        if (StringUtils.hasText(dto.getPolicyAndHouseRules())) existing.setPolicyAndHouseRules(dto.getPolicyAndHouseRules());
+        if (StringUtils.hasText(dto.getEmailId())) existing.setEmailId(dto.getEmailId());
+
+        // Numeric wrappers: update only when provided (non-null)
+        if (dto.getGuests() != null) existing.setGuests(dto.getGuests());
+        if (dto.getBedrooms() != null) existing.setBedrooms(dto.getBedrooms());
+        if (dto.getBathrooms() != null) existing.setBathrooms(dto.getBathrooms());
+        if (dto.getKitchens() != null) existing.setKitchens(dto.getKitchens());
+
+        // Rate periods: strings (could be null)
+        if (dto.getRatePeriodStart() != null) existing.setRatePeriodStart(dto.getRatePeriodStart());
+        if (dto.getRatePeriodEnd() != null) existing.setRatePeriodEnd(dto.getRatePeriodEnd());
+
+        // Rates (Double) — update only when non-null
+        if (dto.getMinRate() != null) existing.setMinRate(dto.getMinRate());
+        if (dto.getNightlyRate() != null) existing.setNightlyRate(dto.getNightlyRate());
+        if (dto.getWeekendRate() != null) existing.setWeekendRate(dto.getWeekendRate());
+        if (dto.getWeeklyRate() != null) existing.setWeeklyRate(dto.getWeeklyRate());
+        if (dto.getMonthlyRate() != null) existing.setMonthlyRate(dto.getMonthlyRate());
+
+        // Collections: replace only when provided (defensive copy)
+        if (dto.getAdditionalCharges() != null) {
+            existing.setAdditionalCharges(new ArrayList<>(dto.getAdditionalCharges()));
+        }
+        if (dto.getAmenities() != null) {
+            existing.setAmenities(new ArrayList<>(dto.getAmenities()));
+        }
+        if (dto.getImages() != null) {
+            existing.setImages(new ArrayList<>(dto.getImages()));
+        }
+
+        // icalUrls map — merge or replace depending on desired behaviour
+        if (dto.getIcalUrls() != null) {
+            Map<String,String> merged = existing.getIcalUrls() == null ? new HashMap<>() : new HashMap<>(existing.getIcalUrls());
+            // choose either merged.putAll(dto.getIcalUrls()) to MERGE
+            // or replace: existing.setIcalUrls(new HashMap<>(dto.getIcalUrls()));
+            merged.putAll(dto.getIcalUrls());
+            existing.setIcalUrls(merged);
+        }
+
+
+        // latitude / longitude (Double) — update only when non-null
+        if (dto.getLatitude() != null) existing.setLatitude(dto.getLatitude());
+        if (dto.getLongitude() != null) existing.setLongitude(dto.getLongitude());
+    }
+
 }

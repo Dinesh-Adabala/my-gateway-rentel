@@ -40,7 +40,7 @@ public class IcalImportExportService {
      * Returns number of newly imported events.
      */
     @Transactional
-    public int importFromUrl(String propertyId, String url) throws IOException, InterruptedException {
+    public int importFromUrl(String propertyId, String source, String url) throws IOException, InterruptedException {
         String ics = fetchRemoteIcs(url);
         if (ics == null || ics.trim().isEmpty()) return 0;
 
@@ -52,38 +52,32 @@ public class IcalImportExportService {
             String rawUid = extractSingleField(veventBody, "UID").orElse(null);
             String uid = (rawUid == null || rawUid.isBlank()) ? UUID.randomUUID().toString() : rawUid;
 
-            // Skip if already exists for this property
-            if (repo.findByUidAndPropertyId(uid, propertyId).isPresent()) {
+            // Duplicate check: include source (use this if sources may reuse UIDs)
+            if (repo.findByUidAndPropertyIdAndSource(uid, propertyId, source).isPresent()) {
+                log.debug("Skipping duplicate uid={} propertyId={} source={}", uid, propertyId, source);
                 continue;
             }
 
-            Optional<String> dtStartRaw = extractSingleField(veventBody, "DTSTART");
-            Optional<String> dtEndRaw   = extractSingleField(veventBody, "DTEND");
-            Optional<String> descOpt    = extractSingleField(veventBody, "DESCRIPTION");
-            Optional<String> summaryOpt = extractSingleField(veventBody, "SUMMARY");
-            Optional<String> locOpt     = extractSingleField(veventBody, "LOCATION");
-
-            LocalDateTime dtStart = parseIcsDateTime(dtStartRaw.orElse(null));
-            LocalDateTime dtEnd = parseIcsDateTime(dtEndRaw.orElse(null));
+            LocalDateTime dtStart = parseIcsDateTime(extractSingleField(veventBody, "DTSTART").orElse(null));
             if (dtStart == null) {
-                // skip if no valid start time (you can change to fallback behavior)
-                log.warn("Skipping VEVENT without DTSTART for propertyId={}, uid={}", propertyId, uid);
+                log.warn("Skipping VEVENT without DTSTART for propertyId={}, uid={}, source={}", propertyId, uid, source);
                 continue;
             }
-            if (dtEnd == null) {
-                // If DTEND missing, assume one night/day or keep as start + 1 day
-                dtEnd = dtStart.plusDays(1);
-            }
+            LocalDateTime dtEnd = parseIcsDateTime(extractSingleField(veventBody, "DTEND").orElse(null));
+            if (dtEnd == null) dtEnd = dtStart.plusDays(1);
 
-            String singleIcs = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\n" + veventBody.trim() + "\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
+            String singleIcs = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\n"
+                    + veventBody.trim()
+                    + "\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
 
             IcalEvent event = new IcalEvent();
             event.setUid(uid);
-            event.setInquiryId(null); // imported external events have no inquiry
+            event.setInquiryId(null);
             event.setPropertyId(propertyId);
             event.setDtStart(dtStart);
             event.setDtEnd(dtEnd);
             event.setIcsContent(singleIcs);
+            event.setSource(source);
 
             repo.save(event);
             imported++;
@@ -91,6 +85,8 @@ public class IcalImportExportService {
 
         return imported;
     }
+
+
 
     /**
      * Build a combined VCALENDAR for a property.
