@@ -5,6 +5,7 @@ import com.ads.mygateway.ical.repository.IcalEventRepository;
 import com.ads.mygateway.inquiry.entity.Inquiry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -22,49 +23,57 @@ public class IcalEventService {
 
     @Transactional
     public IcalEvent createEventForInquiry(Inquiry inquiry) {
+        if (inquiry == null) throw new IllegalArgumentException("inquiry is required");
+        // check for existing event for the inquiry (skip duplicates)
         Optional<IcalEvent> existing = icalEventRepository.findByInquiryId(inquiry.getEnquiryId());
         if (existing.isPresent()) {
-            return existing.get(); // skip duplicate
+            return existing.get();
         }
 
+        // Validate required fields
         if (inquiry.getCheckin() == null || inquiry.getCheckout() == null) {
             throw new IllegalArgumentException("Inquiry must contain checkin and checkout datetimes.");
         }
+        if (!StringUtils.hasText(inquiry.getPropertyId())) {
+            throw new IllegalArgumentException("Inquiry must contain propertyId.");
+        }
 
-        String uid = generateUID(inquiry);
+        String uid = generateUID(inquiry); // inquiryId + random UUID
         String ics = buildIcsString(uid, inquiry);
 
-        // ✅ Now includes propertyId
-        IcalEvent event = new IcalEvent(
-                uid,
-                inquiry.getEnquiryId(),
-                inquiry.getPropertyId(),
-                inquiry.getCheckin(),
-                inquiry.getCheckout(),
-                ics
-        );
+        IcalEvent event = new IcalEvent();
+        event.setUid(uid);
+        event.setInquiryId(inquiry.getEnquiryId());
+        event.setPropertyId(inquiry.getPropertyId());
+        event.setDtStart(inquiry.getCheckin());
+        event.setDtEnd(inquiry.getCheckout());
+        event.setIcsContent(ics);
+        event.setSource("mygatewayrental"); // IMPORTANT: mark as internal
 
         return icalEventRepository.save(event);
     }
+
 
     private String generateUID(Inquiry inquiry) {
         return inquiry.getEnquiryId() + "-" + UUID.randomUUID();
     }
 
     private String buildIcsString(String uid, Inquiry inquiry) {
-        DateTimeFormatter icsFormatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'");
+        DateTimeFormatter icsFormatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
+                .withZone(ZoneOffset.UTC);
         ZoneId systemZone = ZoneId.systemDefault();
 
-        ZonedDateTime dtStartZ = inquiry.getCheckin().atZone(systemZone).withZoneSameInstant(ZoneOffset.UTC);
-        ZonedDateTime dtEndZ = inquiry.getCheckout().atZone(systemZone).withZoneSameInstant(ZoneOffset.UTC);
-        ZonedDateTime dtStamp = ZonedDateTime.now(ZoneOffset.UTC);
+        Instant startInstant = inquiry.getCheckin().atZone(systemZone).toInstant();
+        Instant endInstant = inquiry.getCheckout().atZone(systemZone).toInstant();
+        Instant stampInstant = Instant.now();
 
-        String dtStartStr = dtStartZ.format(icsFormatter);
-        String dtEndStr = dtEndZ.format(icsFormatter);
-        String dtStampStr = dtStamp.format(icsFormatter);
+        String dtStartStr = icsFormatter.format(startInstant);
+        String dtEndStr = icsFormatter.format(endInstant);
+        String dtStampStr = icsFormatter.format(stampInstant);
 
-        String summary = "Booking: " + (inquiry.getPropertyName() != null ? inquiry.getPropertyName() : "Property");
+        String summary = "Booking: " + (StringUtils.hasText(inquiry.getPropertyName()) ? inquiry.getPropertyName() : "Property");
         String description = buildDescription(inquiry);
+        String location = StringUtils.hasText(inquiry.getPropertyName()) ? inquiry.getPropertyName() : "";
 
         StringBuilder sb = new StringBuilder();
         sb.append("BEGIN:VCALENDAR").append("\r\n");
@@ -79,12 +88,13 @@ public class IcalEventService {
         sb.append("DTEND:").append(dtEndStr).append("\r\n");
         sb.append("SUMMARY:").append(escapeText(summary)).append("\r\n");
         sb.append("DESCRIPTION:").append(escapeText(description)).append("\r\n");
-        sb.append("LOCATION:").append(escapeText(inquiry.getPropertyName())).append("\r\n");
+        sb.append("LOCATION:").append(escapeText(location)).append("\r\n");
         sb.append("END:VEVENT").append("\r\n");
         sb.append("END:VCALENDAR").append("\r\n");
 
         return sb.toString();
     }
+
 
     private String buildDescription(Inquiry inquiry) {
         StringBuilder d = new StringBuilder();

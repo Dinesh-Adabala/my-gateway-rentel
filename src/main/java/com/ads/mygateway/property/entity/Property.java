@@ -3,7 +3,9 @@ package com.ads.mygateway.property.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "properties")
@@ -21,10 +23,10 @@ public class Property {
     private String location;
     private String state;
     private String country;
-    private int guests;
-    private int bedrooms;
-    private int bathrooms;
-    private int kitchens;
+    private Integer guests;
+    private Integer bedrooms;
+    private Integer bathrooms;
+    private Integer kitchens;
     private String ratePeriodStart;
     private String ratePeriodEnd;
     private Double minRate;
@@ -48,5 +50,14 @@ public class Property {
     @ElementCollection
     private List<String> images;  // store URLs of images (S3 links or paths)
     private String emailId;
-    private List<String> icalUrls;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "property_ical_urls",
+            joinColumns = @JoinColumn(name = "property_id")
+    )
+    @MapKeyColumn(name = "source")   // KEY column in the join table
+    @Column(name = "url", columnDefinition = "text") // VALUE column
+    private Map<String, String> icalUrls = new HashMap<>();
+    private String latitude;
+    private String longitude;
 }

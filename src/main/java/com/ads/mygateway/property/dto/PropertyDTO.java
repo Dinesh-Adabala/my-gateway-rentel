@@ -3,6 +3,7 @@ package com.ads.mygateway.property.dto;
 import lombok.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,10 +16,10 @@ public class PropertyDTO {
     private String location;
     private String state;
     private String country;
-    private int guests;
-    private int bedrooms;
-    private int bathrooms;
-    private int kitchens;
+    private Integer guests;
+    private Integer bedrooms;
+    private Integer bathrooms;
+    private Integer kitchens;
     private String ratePeriodStart;
     private String ratePeriodEnd;
     private Double minRate;
@@ -32,5 +33,7 @@ public class PropertyDTO {
     private String policyAndHouseRules;
     private List<String> images;
     private String emailId;
-    private List<String> icalUrls;
+    private Map<String, String> icalUrls;
+    private String latitude;
+    private String longitude;
 }

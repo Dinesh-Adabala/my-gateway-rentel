@@ -23,6 +23,11 @@ public class PropertyController {
     public ResponseEntity<PropertyDTO> saveProperty(@RequestBody PropertyDTO propertyDTO) {
         return ResponseEntity.ok(propertyService.saveProperty(propertyDTO));
     }
+    @PutMapping("/edit-property")
+    public ResponseEntity<PropertyDTO> editProperty(@RequestBody PropertyDTO dto) {
+        PropertyDTO updated = propertyService.updateProperty(dto);
+        return ResponseEntity.ok(updated);
+    }
 
     @GetMapping("/fetch-property-by-id/{id}")
     public ResponseEntity<PropertyDTO> getById(@PathVariable String id) {

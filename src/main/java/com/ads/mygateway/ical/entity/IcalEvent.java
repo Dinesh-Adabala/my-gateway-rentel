@@ -31,6 +31,8 @@ public class IcalEvent {
 
     @Column(columnDefinition = "text")
     private String icsContent; // raw .ics content for downloading/sharing
+    @Column(nullable = false)
+    private String source;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -39,13 +41,14 @@ public class IcalEvent {
 
     public IcalEvent() {}
 
-    public IcalEvent(String uid, String inquiryId,String propertyId, LocalDateTime dtStart, LocalDateTime dtEnd, String icsContent) {
+    public IcalEvent(String uid, String inquiryId,String propertyId, LocalDateTime dtStart, LocalDateTime dtEnd, String icsContent , String source) {
         this.uid = uid;
         this.inquiryId = inquiryId;
         this.propertyId = propertyId;
         this.dtStart = dtStart;
         this.dtEnd = dtEnd;
         this.icsContent = icsContent;
+        this.source= source;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

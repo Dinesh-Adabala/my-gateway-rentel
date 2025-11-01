@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface IcalEventRepository extends JpaRepository<IcalEvent, Long> {
     Optional<IcalEvent> findByInquiryId(String inquiryId);
     Optional<IcalEvent> findByUid(String uid);
-    Optional<IcalEvent> findByUidAndPropertyId(String uid, String propertyId);
+    Optional<IcalEvent> findByUidAndPropertyIdAndSource(String uid, String propertyId, String source);
     List<IcalEvent> findAllByPropertyId(String propertyId);
     @Query("""
         SELECT DISTINCT e.propertyId 
